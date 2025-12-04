@@ -1,1 +1,1986 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سامانه مدیریت وقایع پیشرفته</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #4cc9f0;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --light: #f8f9fa;
+            --gray: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            direction: rtl;
+            font-size: 14px;
+        }
+        
+        /* ساعت بالا چپ */
+        .top-clock {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 50px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: var(--dark);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 2px solid var(--primary);
+            font-size: 12px;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 60px auto 20px;
+            padding: 0 10px;
+        }
+        
+        /* کارت */
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+            margin-bottom: 20px;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 20px;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* فرم‌ها */
+        .form-tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 3px;
+            margin: 15px auto;
+            max-width: 100%;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 10px 5px;
+            border: none;
+            background: none;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--gray);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .form-container {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .form-container.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.1);
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        /* داشبورد */
+        #dashboard {
+            display: none;
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+            flex-shrink: 0;
+        }
+        
+        .dashboard-nav {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+        
+        .nav-btn {
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        .nav-btn:hover,
+        .nav-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .dashboard-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* آمار */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        /* ساعت آنالوگ */
+        .analog-clock-container {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        
+        .analog-clock {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
+            position: relative;
+            background: #f8f9fa;
+            border-radius: 50%;
+            border: 8px solid var(--primary);
+        }
+        
+        .clock-hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            background: var(--dark);
+            border-radius: 3px;
+        }
+        
+        .hour-hand {
+            width: 4px;
+            height: 40px;
+            background: var(--dark);
+        }
+        
+        .minute-hand {
+            width: 3px;
+            height: 55px;
+            background: var(--primary);
+        }
+        
+        .second-hand {
+            width: 2px;
+            height: 60px;
+            background: var(--danger);
+        }
+        
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: var(--danger);
+            border-radius: 50%;
+            z-index: 10;
+        }
+        
+        /* پنل ادمین */
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.2);
+            z-index: 2000;
+            transition: right 0.3s;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .admin-panel.active {
+            right: 0;
+        }
+        
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+        
+        .users-table th {
+            background: #f8f9fa;
+            padding: 10px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .users-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        /* وقایع */
+        .events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        
+        .event-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-size: 13px;
+        }
+        
+        /* مدیریت دسته‌ها */
+        .categories-management {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        
+        .categories-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        
+        .category-tag {
+            background: #f0f7ff;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+        }
+        
+        .category-tag button {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            padding: 0 3px;
+            font-size: 14px;
+        }
+        
+        .add-category-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        /* جستجو */
+        .search-results {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        /* آپلود */
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: border 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+        }
+        
+        /* نوتیفیکیشن */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            background: var(--dark);
+            color: white;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.2);
+            z-index: 3000;
+            display: none;
+            animation: slideIn 0.3s;
+            font-size: 13px;
+            max-width: 300px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* صفحه */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* انیمیشن‌ها */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* اسکرول */
+        .card::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .card::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .card::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 3px;
+        }
+        
+        .card::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- ساعت -->
+    <div class="top-clock">
+        <span>🕐</span>
+        <span id="liveClock">--:--:--</span>
+    </div>
+    
+    <!-- صفحه ورود/ثبت نام -->
+    <div id="loginPage" class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1 style="font-size: 18px;">سامانه مدیریت وقایع پیشرفته</h1>
+                <p style="font-size: 13px;">سیستم جامع مدیریت با پنل ادمین</p>
+            </div>
+            
+            <div class="form-tabs">
+                <button class="tab-btn active" data-form="login">ورود به سیستم</button>
+                <button class="tab-btn" data-form="register">ایجاد حساب</button>
+                <button class="tab-btn" data-form="forgot">فراموشی رمز</button>
+            </div>
+            
+            <div class="card-body">
+                <!-- فرم ورود -->
+                <div id="login-form" class="form-container active">
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label>📧 ایمیل یا شماره همراه</label>
+                            <input type="text" id="login-email" required placeholder="user@example.com یا ۰۹۱۲۳۴۵۶۷۸۹">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>🔐 رمز عبور</label>
+                            <input type="password" id="login-password" required placeholder="رمز عبور خود را وارد کنید">
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+                            <label style="font-size: 12px;">
+                                <input type="checkbox"> مرا به خاطر بسپار
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            🔑 ورود به سیستم
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- فرم ثبت نام -->
+                <div id="register-form" class="form-container">
+                    <form id="registerForm">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div class="form-group">
+                                <label>👤 نام</label>
+                                <input type="text" id="first-name" required placeholder="نام">
+                            </div>
+                            <div class="form-group">
+                                <label>👥 نام خانوادگی</label>
+                                <input type="text" id="last-name" required placeholder="نام خانوادگی">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>🆔 کد ملی</label>
+                            <input type="text" id="national-id" required pattern="\d{10}" placeholder="۱۰ رقم کد ملی">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>📱 شماره همراه</label>
+                            <input type="tel" id="phone" required pattern="09\d{9}" placeholder="۰۹۱۲۳۴۵۶۷۸۹">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>📧 ایمیل</label>
+                            <input type="email" id="email" required placeholder="example@domain.com">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div class="form-group">
+                                <label>🔐 رمز عبور</label>
+                                <input type="password" id="password" required minlength="6" placeholder="حداقل ۶ کاراکتر">
+                            </div>
+                            <div class="form-group">
+                                <label>🔁 تکرار رمز</label>
+                                <input type="password" id="confirm-password" required placeholder="تکرار رمز عبور">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            ✨ ایجاد حساب کاربری
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- فرم فراموشی رمز -->
+                <div id="forgot-form" class="form-container">
+                    <form id="forgotForm">
+                        <div class="form-group">
+                            <label>📧 ایمیل یا شماره همراه</label>
+                            <input type="text" id="forgot-email" required placeholder="برای دریافت لینک بازیابی">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            🔗 ارسال لینک بازیابی
+                        </button>
+                        
+                        <div style="text-align: center; margin-top: 15px;">
+                            <a href="#" onclick="switchForm('login')" style="color: var(--primary); font-size: 12px;">بازگشت به صفحه ورود</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- داشبورد -->
+    <div id="dashboard" class="container">
+        <div class="card">
+            <!-- هدر داشبورد -->
+            <div class="dashboard-header">
+                <div class="user-info">
+                    <div class="user-avatar pulse">
+                        👑
+                    </div>
+                    <div style="min-width: 0;">
+                        <h2 id="userFullName" style="font-size: 16px; margin: 0;">کاربر سیستم</h2>
+                        <p id="userEmail" style="font-size: 12px; margin: 2px 0; color: var(--gray);">user@example.com</p>
+                        <p id="userRole" style="color: var(--accent); font-weight: bold; font-size: 12px; margin: 0;"></p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn btn-secondary btn-sm" id="adminPanelBtn">
+                        ⚙️ پنل
+                    </button>
+                    <button class="btn btn-secondary btn-sm" id="logoutBtn">
+                        🚪 خروج
+                    </button>
+                </div>
+            </div>
+            
+            <!-- منوی ناوبری -->
+            <div class="dashboard-nav">
+                <button class="nav-btn active" data-page="main">
+                    📊 داشبورد
+                </button>
+                <button class="nav-btn" data-page="profile">
+                    👤 پروفایل
+                </button>
+                <button class="nav-btn" data-page="events">
+                    📝 وقایع
+                </button>
+                <button class="nav-btn" data-page="categories">
+                    🏷️ دسته‌ها
+                </button>
+                <button class="nav-btn" data-page="search">
+                    🔍 جستجو
+                </button>
+                <button class="nav-btn" data-page="documents">
+                    📎 مدارک
+                </button>
+            </div>
+            
+            <!-- محتوای داشبورد -->
+            <div class="dashboard-content">
+                <!-- ستون اصلی -->
+                <div>
+                    <!-- صفحه اصلی -->
+                    <div id="mainPage" class="page active">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h3 style="color: var(--primary); font-size: 24px;" id="totalEvents">۰</h3>
+                                <p style="font-size: 12px;">وقایع ثبت شده</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3 style="color: var(--success); font-size: 24px;" id="totalUsers">۰</h3>
+                                <p style="font-size: 12px;">کاربران سیستم</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3 style="color: var(--warning); font-size: 24px;" id="completedProfile">۰٪</h3>
+                                <p style="font-size: 12px;">تکمیل پروفایل</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3 style="color: var(--danger); font-size: 24px;" id="todayEvents">۰</h3>
+                                <p style="font-size: 12px;">وقایع امروز</p>
+                            </div>
+                        </div>
+                        
+                        <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.05);">
+                            <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 16px;">📈 فعالیت‌های اخیر</h3>
+                            <div class="events-list" id="recentActivities">
+                                <!-- فعالیت‌ها -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- صفحه پروفایل -->
+                    <div id="profilePage" class="page">
+                        <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.05);">
+                            <h3 style="margin-bottom: 20px; color: var(--primary); font-size: 16px;">👤 اطلاعات شخصی</h3>
+                            <form id="profileForm">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                    <div class="form-group">
+                                        <label>نام</label>
+                                        <input type="text" id="profileFirstName" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>نام خانوادگی</label>
+                                        <input type="text" id="profileLastName" required>
+                                    </div>
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                    <div class="form-group">
+                                        <label>کد ملی</label>
+                                        <input type="text" id="profileNationalId" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>شماره همراه</label>
+                                        <input type="tel" id="profilePhone" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>ایمیل</label>
+                                    <input type="email" id="profileEmail" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>آدرس محل سکونت</label>
+                                    <textarea id="profileAddress" rows="2" placeholder="آدرس کامل"></textarea>
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                    <div class="form-group">
+                                        <label>تاریخ تولد</label>
+                                        <input type="date" id="profileBirthDate">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>تحصیلات</label>
+                                        <select id="profileEducation">
+                                            <option value="">انتخاب کنید</option>
+                                            <option value="diploma">دیپلم</option>
+                                            <option value="bachelor">کارشناسی</option>
+                                            <option value="master">کارشناسی ارشد</option>
+                                            <option value="phd">دکتری</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    💾 ذخیره تغییرات
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- صفحه ثبت وقایع -->
+                    <div id="eventsPage" class="page">
+                        <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.05);">
+                            <h3 style="margin-bottom: 20px; color: var(--primary); font-size: 16px;">📝 ثبت واقعه جدید</h3>
+                            <form id="eventForm">
+                                <div class="form-group">
+                                    <label>عنوان واقعه</label>
+                                    <input type="text" id="eventTitle" required placeholder="عنوان واقعه را وارد کنید">
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                    <div class="form-group">
+                                        <label>تاریخ</label>
+                                        <input type="date" id="eventDate" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>ساعت</label>
+                                        <input type="time" id="eventTime" required>
+                                    </div>
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                    <div class="form-group">
+                                        <label>دسته‌بندی</label>
+                                        <select id="eventCategory" required>
+                                            <option value="">انتخاب کنید</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>اولویت</label>
+                                        <select id="eventPriority" required>
+                                            <option value="low">کم</option>
+                                            <option value="medium" selected>متوسط</option>
+                                            <option value="high">زیاد</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>توضیحات کامل</label>
+                                    <textarea id="eventDescription" rows="3" required placeholder="توضیحات کامل واقعه را بنویسید..."></textarea>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    ✅ ثبت واقعه
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.05);">
+                            <h3 style="margin-bottom: 20px; color: var(--primary); font-size: 16px;">📋 وقایع ثبت شده</h3>
+                            <div class="events-list" id="eventsList">
+                                <!-- وقایع -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- صفحه مدیریت دسته‌ها -->
+                    <div id="categoriesPage" class="page">
+                        <div class="categories-management">
+                            <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 16px;">🏷️ مدیریت دسته‌ها</h3>
+                            
+                            <div id="categoriesContainer">
+                                <div class="categories-list" id="categoriesList">
+                                    <!-- دسته‌ها اینجا نمایش داده می‌شوند -->
+                                </div>
+                                
+                                <div class="add-category-form">
+                                    <input type="text" 
+                                           id="newCategoryInput" 
+                                           placeholder="نام دسته جدید" 
+                                           style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px;">
+                                    <button onclick="addCategory()" class="btn btn-primary btn-sm">
+                                        ➕ اضافه
+                                    </button>
+                                </div>
+                                
+                                <div style="margin-top: 15px;">
+                                    <p style="font-size: 12px; color: var(--gray); margin-bottom: 10px;">
+                                        برای حذف هر دسته، روی دکمه ✖ کنار آن کلیک کنید
+                                    </p>
+                                    <button onclick="resetCategories()" class="btn btn-secondary btn-sm">
+                                        🔄 بازنشانی به پیش‌فرض
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- صفحه جستجو -->
+                    <div id="searchPage" class="page">
+                        <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.05);">
+                            <h3 style="margin-bottom: 20px; color: var(--primary); font-size: 16px;">🔍 جستجوی پیشرفته</h3>
+                            <form id="searchForm">
+                                <div class="form-group">
+                                    <label>کلیدواژه جستجو</label>
+                                    <input type="text" id="searchKeyword" placeholder="عبارت مورد نظر را وارد کنید...">
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                    <div class="form-group">
+                                        <label>نوع جستجو</label>
+                                        <select id="searchType">
+                                            <option value="all">همه موارد</option>
+                                            <option value="events">وقایع</option>
+                                            <option value="users">کاربران</option>
+                                            <option value="documents">مستندات</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>بازه زمانی</label>
+                                        <select id="searchTimeRange">
+                                            <option value="all">همه زمان‌ها</option>
+                                            <option value="today">امروز</option>
+                                            <option value="week">هفته جاری</option>
+                                            <option value="month">ماه جاری</option>
+                                            <option value="year">سال جاری</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    🔎 اجرای جستجو
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.05);">
+                            <h3 style="margin-bottom: 20px; color: var(--primary); font-size: 16px;">📊 نتایج جستجو</h3>
+                            <div id="searchResults" style="min-height: 150px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                                <p style="color: var(--gray); text-align: center; font-size: 13px;">برای مشاهده نتایج، جستجو را انجام دهید.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- صفحه مدارک -->
+                    <div id="documentsPage" class="page">
+                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.05);">
+                            <h3 style="margin-bottom: 20px; color: var(--primary); font-size: 16px;">📎 آپلود مدارک و مستندات</h3>
+                            
+                            <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
+                                <div style="font-size: 32px; color: var(--primary); margin-bottom: 10px;">
+                                    📤
+                                </div>
+                                <p style="margin-bottom: 10px; font-size: 14px;">فایل‌های خود را اینجا رها کنید یا برای انتخاب کلیک کنید</p>
+                                <input type="file" id="fileUpload" multiple style="display: none;">
+                                <button type="button" class="btn btn-secondary btn-sm">
+                                    📁 انتخاب فایل
+                                </button>
+                                <p style="margin-top: 10px; color: var(--gray); font-size: 12px;">
+                                    پشتیبانی از فرمت‌های: PDF, JPG, PNG, DOCX<br>
+                                    حداکثر حجم هر فایل: ۵ مگابایت
+                                </p>
+                            </div>
+                            
+                            <div style="margin-top: 20px;">
+                                <h4 style="margin-bottom: 15px; color: var(--dark); font-size: 15px;">📄 فایل‌های آپلود شده</h4>
+                                <div id="uploadedFiles">
+                                    <!-- فایل‌های آپلود شده -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ستون کناری -->
+                <div>
+                    <!-- ساعت آنالوگ -->
+                    <div class="analog-clock-container">
+                        <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 15px;">⏰ ساعت آنالوگ</h3>
+                        <div class="analog-clock">
+                            <div class="clock-hand hour-hand" id="hourHand"></div>
+                            <div class="clock-hand minute-hand" id="minuteHand"></div>
+                            <div class="clock-hand second-hand" id="secondHand"></div>
+                            <div class="center-dot"></div>
+                        </div>
+                        <div id="digitalTime" style="margin-top: 15px; font-family: 'Courier New', monospace; font-size: 18px; font-weight: bold; color: var(--dark);">
+                            --:--:--
+                        </div>
+                    </div>
+                    
+                    <!-- پنل سریع -->
+                    <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.05);">
+                        <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 15px;">⚡ اقدامات سریع</h3>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <button class="btn btn-secondary btn-sm" onclick="showPage('events')">
+                                📝 ثبت واقعه جدید
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="showPage('documents')">
+                                📎 آپلود مدرک
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="showPage('search')">
+                                🔍 جستجوی پیشرفته
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- پنل ادمین -->
+    <div class="admin-panel" id="adminPanel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="color: var(--primary); font-size: 18px;">⚙️ پنل مدیریت ادمین</h2>
+            <button id="closeAdminBtn" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--gray);">
+                ✖
+            </button>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <h3 style="margin-bottom: 15px; color: var(--dark); font-size: 16px;">👥 مدیریت کاربران</h3>
+            <div style="overflow-x: auto;">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>نام کامل</th>
+                            <th>ایمیل</th>
+                            <th>نقش</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminUsersTable">
+                        <!-- کاربران -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <h3 style="margin-bottom: 15px; color: var(--dark); font-size: 16px;">📊 آمار سیستم</h3>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 13px;">
+                <p>تعداد کل کاربران: <strong id="adminTotalUsers">۰</strong></p>
+                <p>تعداد وقایع ثبت شده: <strong id="adminTotalEvents">۰</strong></p>
+                <p>تعداد وقایع امروز: <strong id="adminTodayEvents">۰</strong></p>
+                <p>تعداد فایل‌های آپلود شده: <strong id="adminTotalFiles">۰</strong></p>
+            </div>
+        </div>
+        
+        <div>
+            <h3 style="margin-bottom: 15px; color: var(--dark); font-size: 16px;">🔧 تنظیمات سیستم</h3>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button class="btn btn-primary btn-sm" onclick="exportData()">
+                    📤 خروجی اطلاعات
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="clearOldEvents()">
+                    🗑️ پاکسازی وقایع قدیمی
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="backupSystem()">
+                    💾 پشتیبان‌گیری
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="resetSystem()">
+                    🔄 بازنشانی سیستم
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- نوتیفیکیشن -->
+    <div id="notification" class="notification"></div>
 
+    <script>
+        // ============ داده‌های سیستم ============
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let events = JSON.parse(localStorage.getItem('events')) || [];
+        let files = JSON.parse(localStorage.getItem('files')) || [];
+        let categories = JSON.parse(localStorage.getItem('categories')) || [
+            { id: 1, name: 'کار', color: '#3498db' },
+            { id: 2, name: 'شخصی', color: '#2ecc71' },
+            { id: 3, name: 'پروژه', color: '#9b59b6' },
+            { id: 4, name: 'مهم', color: '#e74c3c' }
+        ];
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        
+        // ============ وقتی صفحه لود شد ============
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('سیستم بارگذاری شد');
+            
+            // ساعت دیجیتال
+            updateDigitalClock();
+            setInterval(updateDigitalClock, 1000);
+            
+            // ساعت آنالوگ
+            updateAnalogClock();
+            setInterval(updateAnalogClock, 1000);
+            
+            // ذخیره دسته‌ها اگر وجود ندارند
+            if (!localStorage.getItem('categories')) {
+                localStorage.setItem('categories', JSON.stringify(categories));
+            }
+            
+            // بارگذاری دسته‌ها
+            categories = JSON.parse(localStorage.getItem('categories'));
+            
+            // اگر کاربر لاگین کرده
+            if (currentUser) {
+                showDashboard();
+            }
+            
+            // تنظیم رویدادها
+            setupEventListeners();
+            
+            // تاریخ‌های پیش‌فرض
+            setDefaultDates();
+        });
+        
+        // ============ ساعت دیجیتال ============
+        function updateDigitalClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('liveClock').textContent = `${hours}:${minutes}:${seconds}`;
+            document.getElementById('digitalTime').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        
+        // ============ ساعت آنالوگ ============
+        function updateAnalogClock() {
+            const now = new Date();
+            const hours = now.getHours() % 12;
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            
+            const hourDeg = (hours * 30) + (minutes * 0.5);
+            const minuteDeg = (minutes * 6) + (seconds * 0.1);
+            const secondDeg = seconds * 6;
+            
+            const hourHand = document.getElementById('hourHand');
+            const minuteHand = document.getElementById('minuteHand');
+            const secondHand = document.getElementById('secondHand');
+            
+            if (hourHand && minuteHand && secondHand) {
+                hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+                minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+                secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
+            }
+        }
+        
+        // ============ تنظیم رویدادها ============
+        function setupEventListeners() {
+            console.log('تنظیم رویدادها...');
+            
+            // تب‌های فرم
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const formType = this.getAttribute('data-form');
+                    switchForm(formType);
+                });
+            });
+            
+            // فرم ثبت نام
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                registerUser();
+            });
+            
+            // فرم ورود
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                loginUser();
+            });
+            
+            // فرم فراموشی رمز
+            document.getElementById('forgotForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                forgotPassword();
+            });
+            
+            // فرم پروفایل
+            document.getElementById('profileForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveProfile();
+            });
+            
+            // فرم وقایع
+            document.getElementById('eventForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveEvent();
+            });
+            
+            // فرم جستجو
+            document.getElementById('searchForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                performSearch();
+            });
+            
+            // آپلود فایل
+            document.getElementById('fileUpload').addEventListener('change', function(e) {
+                uploadFiles(e.target.files);
+            });
+            
+            // پنل ادمین
+            document.getElementById('adminPanelBtn').addEventListener('click', function() {
+                if (currentUser && currentUser.role === 'admin') {
+                    document.getElementById('adminPanel').classList.add('active');
+                    populateAdminPanel();
+                } else {
+                    showNotification('فقط مدیران سیستم می‌توانند به پنل مدیریت دسترسی داشته باشند', 'warning');
+                }
+            });
+            
+            document.getElementById('closeAdminBtn').addEventListener('click', function() {
+                document.getElementById('adminPanel').classList.remove('active');
+            });
+            
+            // منوی داشبورد
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const page = this.getAttribute('data-page');
+                    showPage(page);
+                    
+                    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // خروج
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+        }
+        
+        // ============ تعویض فرم ============
+        function switchForm(formType) {
+            document.querySelectorAll('.form-container').forEach(form => {
+                form.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(`${formType}-form`).classList.add('active');
+            document.querySelector(`.tab-btn[data-form="${formType}"]`).classList.add('active');
+        }
+        
+        // ============ ثبت کاربر جدید ============
+        function registerUser() {
+            const firstName = document.getElementById('first-name').value.trim();
+            const lastName = document.getElementById('last-name').value.trim();
+            const nationalId = document.getElementById('national-id').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (password !== confirmPassword) {
+                showNotification('رمز عبور و تکرار آن مطابقت ندارند', 'error');
+                return;
+            }
+            
+            if (nationalId.length !== 10 || !/^\d+$/.test(nationalId)) {
+                showNotification('کد ملی باید ۱۰ رقم باشد', 'error');
+                return;
+            }
+            
+            if (!phone.match(/^09\d{9}$/)) {
+                showNotification('شماره همراه باید با ۰۹ شروع شده و ۱۱ رقم باشد', 'error');
+                return;
+            }
+            
+            if (!email.includes('@')) {
+                showNotification('ایمیل معتبر نیست', 'error');
+                return;
+            }
+            
+            const existingUser = users.find(u => u.email === email || u.phone === phone || u.nationalId === nationalId);
+            if (existingUser) {
+                showNotification('کاربر با این اطلاعات قبلاً ثبت‌نام کرده است', 'error');
+                return;
+            }
+            
+            const role = users.length === 0 ? 'admin' : 'user';
+            
+            const newUser = {
+                id: Date.now(),
+                firstName,
+                lastName,
+                nationalId,
+                phone,
+                email,
+                password,
+                role,
+                address: '',
+                birthDate: '',
+                education: '',
+                profileComplete: false,
+                createdAt: new Date().toISOString()
+            };
+            
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            currentUser = newUser;
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            
+            showNotification(`ثبت‌نام موفق! خوش آمدید ${firstName}`, 'success');
+            setTimeout(() => showDashboard(), 1000);
+        }
+        
+        // ============ ورود کاربر ============
+        function loginUser() {
+            const emailOrPhone = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            
+            const user = users.find(u => 
+                (u.email === emailOrPhone || u.phone === emailOrPhone) && 
+                u.password === password
+            );
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                
+                showNotification(`ورود موفق! خوش آمدید ${user.firstName}`, 'success');
+                setTimeout(() => showDashboard(), 1000);
+            } else {
+                if (users.length === 0) {
+                    showNotification('هنوز هیچ کاربری ثبت‌نام نکرده. لطفا اول ثبت‌نام کنید.', 'info');
+                    switchForm('register');
+                } else {
+                    showNotification('ایمیل/شماره یا رمز عبور اشتباه است', 'error');
+                }
+            }
+        }
+        
+        // ============ فراموشی رمز ============
+        function forgotPassword() {
+            const emailOrPhone = document.getElementById('forgot-email').value.trim();
+            
+            const user = users.find(u => u.email === emailOrPhone || u.phone === emailOrPhone);
+            
+            if (user) {
+                showNotification(`لینک بازیابی رمز به ${emailOrPhone} ارسال شد`, 'success');
+                setTimeout(() => switchForm('login'), 2000);
+            } else {
+                showNotification('کاربری با این اطلاعات یافت نشد', 'error');
+            }
+        }
+        
+        // ============ نمایش داشبورد ============
+        function showDashboard() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            
+            document.getElementById('userFullName').textContent = `${currentUser.firstName} ${currentUser.lastName}`;
+            document.getElementById('userEmail').textContent = currentUser.email;
+            document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '👑 مدیر سیستم' : '👤 کاربر عادی';
+            
+            document.getElementById('profileFirstName').value = currentUser.firstName;
+            document.getElementById('profileLastName').value = currentUser.lastName;
+            document.getElementById('profileNationalId').value = currentUser.nationalId;
+            document.getElementById('profilePhone').value = currentUser.phone;
+            document.getElementById('profileEmail').value = currentUser.email;
+            document.getElementById('profileAddress').value = currentUser.address || '';
+            document.getElementById('profileBirthDate').value = currentUser.birthDate || '';
+            document.getElementById('profileEducation').value = currentUser.education || '';
+            
+            updateStats();
+            loadEvents();
+            loadActivities();
+            loadFiles();
+            loadCategories();
+            
+            showPage('main');
+        }
+        
+        // ============ نمایش صفحه ============
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.display = 'none';
+            });
+            
+            document.getElementById(`${pageName}Page`).style.display = 'block';
+            
+            if (pageName === 'events') {
+                populateCategorySelect();
+            }
+        }
+        
+        // ============ تنظیم تاریخ‌های پیش‌فرض ============
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            document.getElementById('eventDate').value = today;
+            document.getElementById('eventTime').value = timeString;
+        }
+        
+        // ============ ذخیره پروفایل ============
+        function saveProfile() {
+            if (!currentUser) return;
+            
+            currentUser.firstName = document.getElementById('profileFirstName').value.trim();
+            currentUser.lastName = document.getElementById('profileLastName').value.trim();
+            currentUser.phone = document.getElementById('profilePhone').value.trim();
+            currentUser.email = document.getElementById('profileEmail').value.trim();
+            currentUser.address = document.getElementById('profileAddress').value.trim();
+            currentUser.birthDate = document.getElementById('profileBirthDate').value;
+            currentUser.education = document.getElementById('profileEducation').value;
+            currentUser.profileComplete = true;
+            
+            const index = users.findIndex(u => u.id === currentUser.id);
+            if (index !== -1) {
+                users[index] = currentUser;
+                localStorage.setItem('users', JSON.stringify(users));
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                document.getElementById('userFullName').textContent = `${currentUser.firstName} ${currentUser.lastName}`;
+                document.getElementById('userEmail').textContent = currentUser.email;
+                
+                showNotification('اطلاعات پروفایل با موفقیت ذخیره شد', 'success');
+                updateStats();
+            }
+        }
+        
+        // ============ بارگذاری دسته‌ها ============
+        function loadCategories() {
+            const categoriesList = document.getElementById('categoriesList');
+            categoriesList.innerHTML = '';
+            
+            categories.forEach(category => {
+                const categoryTag = document.createElement('div');
+                categoryTag.className = 'category-tag';
+                categoryTag.innerHTML = `
+                    🏷️ ${category.name}
+                    <button onclick="deleteCategory(${category.id})">✖</button>
+                `;
+                categoriesList.appendChild(categoryTag);
+            });
+        }
+        
+        // ============ پر کردن انتخاب دسته‌ها ============
+        function populateCategorySelect() {
+            const select = document.getElementById('eventCategory');
+            select.innerHTML = '<option value="">انتخاب کنید</option>';
+            
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                select.appendChild(option);
+            });
+        }
+        
+        // ============ اضافه کردن دسته جدید ============
+        function addCategory() {
+            const input = document.getElementById('newCategoryInput');
+            const name = input.value.trim();
+            
+            if (!name) {
+                showNotification('لطفا نام دسته را وارد کنید', 'warning');
+                return;
+            }
+            
+            if (categories.some(cat => cat.name.toLowerCase() === name.toLowerCase())) {
+                showNotification('این دسته قبلاً وجود دارد', 'warning');
+                return;
+            }
+            
+            const colors = ['#3498db', '#2ecc71', '#9b59b6', '#e74c3c', '#f39c12', '#1abc9c', '#34495e'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            const newCategory = {
+                id: Date.now(),
+                name: name,
+                color: randomColor
+            };
+            
+            categories.push(newCategory);
+            localStorage.setItem('categories', JSON.stringify(categories));
+            
+            loadCategories();
+            input.value = '';
+            
+            showNotification(`دسته "${name}" اضافه شد`, 'success');
+        }
+        
+        // ============ حذف دسته ============
+        function deleteCategory(categoryId) {
+            if (confirm('آیا از حذف این دسته اطمینان دارید؟')) {
+                const index = categories.findIndex(cat => cat.id === categoryId);
+                if (index !== -1) {
+                    categories.splice(index, 1);
+                    localStorage.setItem('categories', JSON.stringify(categories));
+                    loadCategories();
+                    showNotification('دسته حذف شد', 'success');
+                }
+            }
+        }
+        
+        // ============ بازنشانی دسته‌ها به پیش‌فرض ============
+        function resetCategories() {
+            if (confirm('آیا می‌خواهید دسته‌ها به حالت پیش‌فرض بازگردند؟')) {
+                categories = [
+                    { id: 1, name: 'کار', color: '#3498db' },
+                    { id: 2, name: 'شخصی', color: '#2ecc71' },
+                    { id: 3, name: 'پروژه', color: '#9b59b6' },
+                    { id: 4, name: 'مهم', color: '#e74c3c' }
+                ];
+                localStorage.setItem('categories', JSON.stringify(categories));
+                loadCategories();
+                showNotification('دسته‌ها به پیش‌فرض بازگردانده شدند', 'success');
+            }
+        }
+        
+        // ============ ذخیره واقعه ============
+        function saveEvent() {
+            const title = document.getElementById('eventTitle').value.trim();
+            const date = document.getElementById('eventDate').value;
+            const time = document.getElementById('eventTime').value;
+            const categoryId = document.getElementById('eventCategory').value;
+            const priority = document.getElementById('eventPriority').value;
+            const description = document.getElementById('eventDescription').value.trim();
+            
+            if (!title || !date || !time || !categoryId || !description) {
+                showNotification('لطفا تمام فیلدهای ضروری را پر کنید', 'warning');
+                return;
+            }
+            
+            const category = categories.find(cat => cat.id == categoryId);
+            
+            const newEvent = {
+                id: Date.now(),
+                title,
+                date,
+                time,
+                categoryId: categoryId,
+                categoryName: category ? category.name : 'بدون دسته',
+                priority,
+                description,
+                userId: currentUser.id,
+                userName: `${currentUser.firstName} ${currentUser.lastName}`,
+                createdAt: new Date().toISOString()
+            };
+            
+            events.push(newEvent);
+            localStorage.setItem('events', JSON.stringify(events));
+            
+            addEventToList(newEvent);
+            updateStats();
+            document.getElementById('eventForm').reset();
+            setDefaultDates();
+            
+            showNotification('واقعه با موفقیت ثبت شد', 'success');
+        }
+        
+        // ============ اضافه کردن واقعه به لیست ============
+        function addEventToList(event) {
+            const eventsList = document.getElementById('eventsList');
+            const eventElement = document.createElement('div');
+            eventElement.className = 'event-item';
+            eventElement.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="font-weight: bold; color: var(--dark); font-size: 14px;">${event.title}</div>
+                    <div style="color: var(--gray); font-size: 12px;">${event.date} - ${event.time}</div>
+                </div>
+                <div style="color: ${getPriorityColor(event.priority)}; font-size: 12px; margin-bottom: 6px;">
+                    🏷️ ${event.categoryName} • ${getPriorityName(event.priority)}
+                </div>
+                <div style="color: var(--dark); font-size: 13px;">${event.description}</div>
+            `;
+            
+            if (eventsList.firstChild) {
+                eventsList.insertBefore(eventElement, eventsList.firstChild);
+            } else {
+                eventsList.appendChild(eventElement);
+            }
+        }
+        
+        // ============ بارگذاری وقایع ============
+        function loadEvents() {
+            const eventsList = document.getElementById('eventsList');
+            eventsList.innerHTML = '';
+            
+            const userEvents = events.filter(e => e.userId === currentUser.id);
+            
+            if (userEvents.length === 0) {
+                eventsList.innerHTML = '<p style="text-align: center; color: var(--gray); padding: 30px; font-size: 13px;">هنوز هیچ واقعه‌ای ثبت نکرده‌اید.</p>';
+                return;
+            }
+            
+            userEvents.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            userEvents.forEach(event => addEventToList(event));
+        }
+        
+        // ============ بارگذاری فعالیت‌ها ============
+        function loadActivities() {
+            const activitiesList = document.getElementById('recentActivities');
+            activitiesList.innerHTML = '';
+            
+            const recentEvents = events
+                .filter(e => e.userId === currentUser.id)
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 5);
+            
+            if (recentEvents.length === 0) {
+                activitiesList.innerHTML = '<p style="text-align: center; color: var(--gray); padding: 20px; font-size: 13px;">هنوز فعالیتی ندارید.</p>';
+                return;
+            }
+            
+            recentEvents.forEach(event => {
+                const activity = document.createElement('div');
+                activity.className = 'event-item';
+                activity.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="background: ${getPriorityColor(event.priority)}; width: 8px; height: 8px; border-radius: 50%;"></div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; margin-bottom: 3px; font-size: 13px;">${event.title}</div>
+                            <div style="font-size: 11px; color: var(--gray);">${formatDate(event.createdAt)}</div>
+                        </div>
+                    </div>
+                `;
+                activitiesList.appendChild(activity);
+            });
+        }
+        
+        // ============ آپدیت آمار ============
+        function updateStats() {
+            const userEvents = events.filter(e => e.userId === currentUser.id);
+            const today = new Date().toISOString().split('T')[0];
+            const todayEvents = userEvents.filter(e => e.date === today).length;
+            
+            document.getElementById('totalEvents').textContent = userEvents.length;
+            document.getElementById('totalUsers').textContent = users.length;
+            document.getElementById('todayEvents').textContent = todayEvents;
+            document.getElementById('completedProfile').textContent = currentUser.profileComplete ? '۱۰۰٪' : '۵۰٪';
+        }
+        
+        // ============ آپلود فایل ============
+        function uploadFiles(fileList) {
+            if (!fileList || fileList.length === 0) return;
+            
+            for (let i = 0; i < fileList.length; i++) {
+                const file = fileList[i];
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    showNotification(`فایل ${file.name} حجمش زیاد است (حداکثر ۵MB)`, 'warning');
+                    continue;
+                }
+                
+                const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+                if (!allowedTypes.includes(file.type)) {
+                    showNotification(`نوع فایل ${file.name} پشتیبانی نمی‌شود`, 'warning');
+                    continue;
+                }
+                
+                const newFile = {
+                    id: Date.now() + i,
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    userId: currentUser.id,
+                    userName: `${currentUser.firstName} ${currentUser.lastName}`,
+                    uploadedAt: new Date().toISOString()
+                };
+                
+                files.push(newFile);
+                addFileToList(newFile);
+            }
+            
+            localStorage.setItem('files', JSON.stringify(files));
+            showNotification('فایل‌ها با موفقیت آپلود شدند', 'success');
+            
+            if (currentUser.role === 'admin') {
+                populateAdminPanel();
+            }
+        }
+        
+        // ============ اضافه کردن فایل به لیست ============
+        function addFileToList(file) {
+            const uploadedFiles = document.getElementById('uploadedFiles');
+            const fileElement = document.createElement('div');
+            fileElement.className = 'event-item';
+            fileElement.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="font-size: 20px;">
+                        ${getFileIcon(file.type)}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; margin-bottom: 3px; font-size: 13px;">${file.name}</div>
+                        <div style="font-size: 11px; color: var(--gray);">
+                            ${formatBytes(file.size)} • ${formatDate(file.uploadedAt)}
+                        </div>
+                    </div>
+                    <button onclick="downloadFile(${file.id})" style="background: var(--primary); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                        📥
+                    </button>
+                </div>
+            `;
+            
+            if (uploadedFiles.firstChild) {
+                uploadedFiles.insertBefore(fileElement, uploadedFiles.firstChild);
+            } else {
+                uploadedFiles.appendChild(fileElement);
+            }
+        }
+        
+        // ============ بارگذاری فایل‌ها ============
+        function loadFiles() {
+            const uploadedFiles = document.getElementById('uploadedFiles');
+            uploadedFiles.innerHTML = '';
+            
+            const userFiles = files.filter(f => f.userId === currentUser.id);
+            
+            if (userFiles.length === 0) {
+                uploadedFiles.innerHTML = '<p style="text-align: center; color: var(--gray); padding: 20px; font-size: 13px;">هنوز فایلی آپلود نکرده‌اید.</p>';
+                return;
+            }
+            
+            userFiles.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+            
+            userFiles.forEach(file => addFileToList(file));
+        }
+        
+        // ============ دانلود فایل ============
+        function downloadFile(fileId) {
+            const file = files.find(f => f.id === fileId);
+            if (file) {
+                showNotification(`دانلود فایل ${file.name} شروع شد`, 'info');
+            }
+        }
+        
+        // ============ جستجو ============
+        function performSearch() {
+            const keyword = document.getElementById('searchKeyword').value.trim();
+            const type = document.getElementById('searchType').value;
+            
+            if (!keyword) {
+                showNotification('لطفا عبارت جستجو را وارد کنید', 'warning');
+                return;
+            }
+            
+            let results = [];
+            
+            if (type === 'events' || type === 'all') {
+                const filteredEvents = events.filter(event => 
+                    event.userId === currentUser.id && (
+                        event.title.includes(keyword) || 
+                        event.description.includes(keyword)
+                    )
+                );
+                results.push(...filteredEvents.map(e => ({
+                    type: 'event',
+                    title: e.title,
+                    description: e.description,
+                    date: e.date
+                })));
+            }
+            
+            if (type === 'users' || type === 'all') {
+                const filteredUsers = users.filter(user => 
+                    user.id !== currentUser.id && (
+                        user.firstName.includes(keyword) || 
+                        user.lastName.includes(keyword) ||
+                        user.email.includes(keyword)
+                    )
+                );
+                results.push(...filteredUsers.map(u => ({
+                    type: 'user',
+                    title: `${u.firstName} ${u.lastName}`,
+                    description: u.email,
+                    date: u.createdAt.split('T')[0]
+                })));
+            }
+            
+            displaySearchResults(results);
+            showNotification(`${results.length} نتیجه برای "${keyword}" یافت شد`, 'success');
+        }
+        
+        // ============ نمایش نتایج جستجو ============
+        function displaySearchResults(results) {
+            const container = document.getElementById('searchResults');
+            
+            if (results.length === 0) {
+                container.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 30px; font-size: 13px;">هیچ نتیجه‌ای یافت نشد.</p>';
+                return;
+            }
+            
+            let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+            
+            results.forEach(result => {
+                const icon = result.type === 'event' ? '📝' : '👤';
+                const typeText = result.type === 'event' ? 'واقعه' : 'کاربر';
+                
+                html += `
+                    <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #eee;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <div style="background: ${result.type === 'event' ? 'var(--primary)' : 'var(--accent)'}; 
+                                 color: white; width: 30px; height: 30px; border-radius: 50%; 
+                                 display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                                ${icon}
+                            </div>
+                            <div>
+                                <div style="font-weight: bold; font-size: 13px;">${result.title}</div>
+                                <div style="font-size: 11px; color: var(--gray);">${typeText} • ${result.date}</div>
+                            </div>
+                        </div>
+                        <div style="color: var(--dark); font-size: 12px;">${result.description}</div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // ============ پر کردن پنل ادمین ============
+        function populateAdminPanel() {
+            const table = document.getElementById('adminUsersTable');
+            table.innerHTML = '';
+            
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.firstName} ${user.lastName}</td>
+                    <td>${user.email}</td>
+                    <td>
+                        <span style="background: ${user.role === 'admin' ? 'var(--accent)' : 'var(--primary)'}; 
+                              color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px;">
+                            ${user.role === 'admin' ? 'ادمین' : 'کاربر'}
+                        </span>
+                    </td>
+                    <td>
+                        <button onclick="adminEditUser(${user.id})" style="background: none; border: none; color: var(--primary); cursor: pointer; margin-left: 5px; font-size: 14px;">✏️</button>
+                        <button onclick="adminDeleteUser(${user.id})" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 14px;">🗑️</button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+            
+            const today = new Date().toISOString().split('T')[0];
+            const todayEvents = events.filter(e => e.date === today).length;
+            
+            document.getElementById('adminTotalUsers').textContent = users.length;
+            document.getElementById('adminTotalEvents').textContent = events.length;
+            document.getElementById('adminTodayEvents').textContent = todayEvents;
+            document.getElementById('adminTotalFiles').textContent = files.length;
+        }
+        
+        // ============ تابع‌های پنل ادمین ============
+        function adminEditUser(userId) {
+            showNotification('ویرایش کاربر در حال توسعه...', 'info');
+        }
+        
+        function adminDeleteUser(userId) {
+            if (confirm('آیا از حذف این کاربر اطمینان دارید؟')) {
+                const index = users.findIndex(u => u.id === userId);
+                if (index !== -1) {
+                    if (currentUser.id === userId) {
+                        showNotification('شما نمی‌توانید حساب خودتان را حذف کنید', 'error');
+                        return;
+                    }
+                    
+                    users.splice(index, 1);
+                    localStorage.setItem('users', JSON.stringify(users));
+                    populateAdminPanel();
+                    updateStats();
+                    showNotification('کاربر حذف شد', 'success');
+                }
+            }
+        }
+        
+        function exportData() {
+            const data = {
+                users,
+                events,
+                files,
+                categories,
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            showNotification('خروجی اطلاعات با موفقیت دانلود شد', 'success');
+        }
+        
+        function clearOldEvents() {
+            if (confirm('آیا از پاکسازی وقایع قدیمی اطمینان دارید؟')) {
+                const oneMonthAgo = new Date();
+                oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                
+                events = events.filter(e => new Date(e.createdAt) > oneMonthAgo);
+                localStorage.setItem('events', JSON.stringify(events));
+                
+                if (currentUser) {
+                    loadEvents();
+                    updateStats();
+                }
+                
+                showNotification('وقایع قدیمی پاکسازی شدند', 'success');
+            }
+        }
+        
+        function backupSystem() {
+            showNotification('پشتیبان‌گیری انجام شد', 'success');
+        }
+        
+        function resetSystem() {
+            if (confirm('⚠️ آیا از بازنشانی کامل سیستم اطمینان دارید؟ این عمل غیرقابل بازگشت است!')) {
+                localStorage.clear();
+                users = [];
+                events = [];
+                files = [];
+                currentUser = null;
+                
+                showNotification('سیستم بازنشانی شد', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }
+        }
+        
+        // ============ خروج ============
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginPage').style.display = 'block';
+            
+            document.getElementById('loginForm').reset();
+            switchForm('login');
+            
+            showNotification('با موفقیت خارج شدید', 'info');
+        }
+        
+        // ============ نمایش نوتیفیکیشن ============
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            const colors = {
+                'success': 'var(--success)',
+                'error': 'var(--danger)',
+                'warning': 'var(--warning)',
+                'info': 'var(--dark)'
+            };
+            notification.style.backgroundColor = colors[type] || 'var(--dark)';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 4000);
+        }
+        
+        // ============ توابع کمکی ============
+        function getPriorityName(priority) {
+            const names = {
+                'low': 'کم',
+                'medium': 'متوسط',
+                'high': 'زیاد'
+            };
+            return names[priority] || 'نامشخص';
+        }
+        
+        function getPriorityColor(priority) {
+            const colors = {
+                'low': '#2ecc71',
+                'medium': '#f39c12',
+                'high': '#e74c3c'
+            };
+            return colors[priority] || '#95a5a6';
+        }
+        
+        function getFileIcon(fileType) {
+            if (fileType.includes('image')) return '🖼️';
+            if (fileType.includes('pdf')) return '📕';
+            if (fileType.includes('word')) return '📄';
+            return '📎';
+        }
+        
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fa-IR');
+        }
+    </script>
+</body>
+</html>
