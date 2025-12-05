@@ -468,11 +468,104 @@
             text-align: center;
             margin: 15px 0;
             cursor: pointer;
-            transition: border 0.3s;
+            transition: all 0.3s;
+            position: relative;
         }
         
         .upload-area:hover {
             border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.1);
+            transform: scale(1.02);
+        }
+        
+        /* مودال فایل‌ها */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+        
+        .close-modal:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .modal-body {
+            padding: 10px 0;
+        }
+        
+        /* دکمه‌های فایل */
+        .btn-view, .btn-download, .btn-delete {
+            transition: all 0.3s;
+        }
+        
+        .btn-view:hover {
+            background: #2980b9 !important;
+            transform: translateY(-2px);
+        }
+        
+        .btn-download:hover {
+            background: #27ae60 !important;
+            transform: translateY(-2px);
+        }
+        
+        .btn-delete:hover {
+            background: #c0392b !important;
+            transform: translateY(-2px);
         }
         
         /* نوتیفیکیشن */
@@ -495,6 +588,11 @@
         @keyframes slideIn {
             from { transform: translateX(-100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         /* صفحه */
@@ -534,6 +632,15 @@
         
         .card::-webkit-scrollbar-thumb:hover {
             background: var(--secondary);
+        }
+        
+        .events-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .events-list::-webkit-scrollbar-thumb {
+            background: var(--gray);
+            border-radius: 2px;
         }
     </style>
 </head>
@@ -932,23 +1039,43 @@
                         <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.05);">
                             <h3 style="margin-bottom: 20px; color: var(--primary); font-size: 16px;">📎 آپلود مدارک و مستندات</h3>
                             
-                            <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
-                                <div style="font-size: 32px; color: var(--primary); margin-bottom: 10px;">
+                            <div class="upload-area" id="uploadArea">
+                                <div style="font-size: 48px; color: var(--primary); margin-bottom: 15px;">
                                     📤
                                 </div>
-                                <p style="margin-bottom: 10px; font-size: 14px;">فایل‌های خود را اینجا رها کنید یا برای انتخاب کلیک کنید</p>
+                                <p style="margin-bottom: 15px; font-size: 16px;">فایل‌های خود را اینجا رها کنید یا برای انتخاب کلیک کنید</p>
                                 <input type="file" id="fileUpload" multiple style="display: none;">
-                                <button type="button" class="btn btn-secondary btn-sm">
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('fileUpload').click()">
                                     📁 انتخاب فایل
                                 </button>
-                                <p style="margin-top: 10px; color: var(--gray); font-size: 12px;">
-                                    پشتیبانی از فرمت‌های: PDF, JPG, PNG, DOCX<br>
+                                <p style="margin-top: 15px; color: var(--gray); font-size: 14px;">
+                                    پشتیبانی از فرمت‌های: JPG, PNG, PDF, DOC, DOCX, TXT, ZIP, RAR<br>
                                     حداکثر حجم هر فایل: ۵ مگابایت
                                 </p>
+                                <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+                                    <button onclick="uploadSampleFiles()" class="btn btn-sm" style="background: #f0f7ff; color: var(--primary); border: 1px solid var(--primary);">
+                                        🧪 فایل نمونه
+                                    </button>
+                                    <button onclick="clearAllFiles()" class="btn btn-sm" style="background: #fff5f5; color: var(--danger); border: 1px solid var(--danger);">
+                                        🗑️ پاکسازی همه
+                                    </button>
+                                </div>
                             </div>
                             
-                            <div style="margin-top: 20px;">
-                                <h4 style="margin-bottom: 15px; color: var(--dark); font-size: 15px;">📄 فایل‌های آپلود شده</h4>
+                            <div style="margin-top: 30px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <h4 style="color: var(--dark); font-size: 15px; margin: 0;">📄 فایل‌های آپلود شده</h4>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <input type="text" 
+                                               id="searchFilesInput" 
+                                               placeholder="جستجو در فایل‌ها..." 
+                                               style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; width: 150px;"
+                                               onkeyup="searchFiles(this.value)">
+                                        <span style="font-size: 12px; color: var(--gray);">
+                                            ${files.length} فایل
+                                        </span>
+                                    </div>
+                                </div>
                                 <div id="uploadedFiles">
                                     <!-- فایل‌های آپلود شده -->
                                 </div>
@@ -1096,6 +1223,9 @@
             
             // تاریخ‌های پیش‌فرض
             setDefaultDates();
+            
+            // تنظیم Drag & Drop
+            setupDragAndDrop();
         });
         
         // ============ ساعت دیجیتال ============
@@ -1128,6 +1258,31 @@
                 minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
                 secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
             }
+        }
+        
+        // ============ تنظیم Drag & Drop ============
+        function setupDragAndDrop() {
+            const uploadArea = document.getElementById('uploadArea');
+            if (!uploadArea) return;
+            
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    uploadFiles(e.dataTransfer.files);
+                }
+            });
         }
         
         // ============ تنظیم رویدادها ============
@@ -1180,7 +1335,11 @@
             
             // آپلود فایل
             document.getElementById('fileUpload').addEventListener('change', function(e) {
-                uploadFiles(e.target.files);
+                if (e.target.files && e.target.files.length > 0) {
+                    uploadFiles(e.target.files);
+                    // ریست کردن input برای آپلود مجدد همان فایل
+                    e.target.value = '';
+                }
             });
             
             // پنل ادمین
@@ -1410,6 +1569,8 @@
         // ============ بارگذاری دسته‌ها ============
         function loadCategories() {
             const categoriesList = document.getElementById('categoriesList');
+            if (!categoriesList) return;
+            
             categoriesList.innerHTML = '';
             
             categories.forEach(category => {
@@ -1426,6 +1587,8 @@
         // ============ پر کردن انتخاب دسته‌ها ============
         function populateCategorySelect() {
             const select = document.getElementById('eventCategory');
+            if (!select) return;
+            
             select.innerHTML = '<option value="">انتخاب کنید</option>';
             
             categories.forEach(category => {
@@ -1541,6 +1704,8 @@
         // ============ اضافه کردن واقعه به لیست ============
         function addEventToList(event) {
             const eventsList = document.getElementById('eventsList');
+            if (!eventsList) return;
+            
             const eventElement = document.createElement('div');
             eventElement.className = 'event-item';
             eventElement.innerHTML = `
@@ -1564,6 +1729,8 @@
         // ============ بارگذاری وقایع ============
         function loadEvents() {
             const eventsList = document.getElementById('eventsList');
+            if (!eventsList) return;
+            
             eventsList.innerHTML = '';
             
             const userEvents = events.filter(e => e.userId === currentUser.id);
@@ -1581,6 +1748,8 @@
         // ============ بارگذاری فعالیت‌ها ============
         function loadActivities() {
             const activitiesList = document.getElementById('recentActivities');
+            if (!activitiesList) return;
+            
             activitiesList.innerHTML = '';
             
             const recentEvents = events
@@ -1621,68 +1790,151 @@
             document.getElementById('completedProfile').textContent = currentUser.profileComplete ? '۱۰۰٪' : '۵۰٪';
         }
         
-        // ============ آپلود فایل ============
-        function uploadFiles(fileList) {
+        // ============ آپلود فایل‌ها ============
+        async function uploadFiles(fileList) {
             if (!fileList || fileList.length === 0) return;
+            
+            const uploadedFilesContainer = document.getElementById('uploadedFiles');
+            const loadingMessage = document.createElement('div');
+            loadingMessage.innerHTML = '<p style="text-align: center; color: var(--gray);">در حال آپلود فایل‌ها...</p>';
+            uploadedFilesContainer.appendChild(loadingMessage);
+            
+            let uploadCount = 0;
             
             for (let i = 0; i < fileList.length; i++) {
                 const file = fileList[i];
                 
+                // محدودیت حجم (۵MB)
                 if (file.size > 5 * 1024 * 1024) {
                     showNotification(`فایل ${file.name} حجمش زیاد است (حداکثر ۵MB)`, 'warning');
                     continue;
                 }
                 
-                const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+                // محدودیت نوع فایل
+                const allowedTypes = [
+                    'image/jpeg', 'image/png', 'image/gif',
+                    'application/pdf', 
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'text/plain',
+                    'application/zip',
+                    'application/vnd.rar'
+                ];
+                
                 if (!allowedTypes.includes(file.type)) {
                     showNotification(`نوع فایل ${file.name} پشتیبانی نمی‌شود`, 'warning');
                     continue;
                 }
                 
-                const newFile = {
-                    id: Date.now() + i,
-                    name: file.name,
-                    type: file.type,
-                    size: file.size,
-                    userId: currentUser.id,
-                    userName: `${currentUser.firstName} ${currentUser.lastName}`,
-                    uploadedAt: new Date().toISOString()
-                };
-                
-                files.push(newFile);
-                addFileToList(newFile);
+                try {
+                    // ایجاد شیء فایل
+                    const newFile = {
+                        id: Date.now() + i,
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        userId: currentUser.id,
+                        userName: `${currentUser.firstName} ${currentUser.lastName}`,
+                        uploadedAt: new Date().toISOString(),
+                        // ذخیره فایل به صورت Base64
+                        data: await fileToBase64(file)
+                    };
+                    
+                    files.push(newFile);
+                    
+                    // نمایش فایل بلافاصله بعد از آپلود
+                    addFileToList(newFile);
+                    
+                    uploadCount++;
+                    
+                    // ذخیره در localStorage
+                    localStorage.setItem('files', JSON.stringify(files));
+                    
+                    // نمایش پیام برای هر فایل
+                    showNotification(`فایل ${file.name} آپلود شد`, 'success');
+                    
+                } catch (error) {
+                    console.error('خطا در آپلود فایل:', error);
+                    showNotification(`خطا در آپلود فایل ${file.name}`, 'error');
+                }
             }
             
-            localStorage.setItem('files', JSON.stringify(files));
-            showNotification('فایل‌ها با موفقیت آپلود شدند', 'success');
+            // حذف پیام لودینگ
+            loadingMessage.remove();
             
-            if (currentUser.role === 'admin') {
-                populateAdminPanel();
+            if (uploadCount > 0) {
+                showNotification(`${uploadCount} فایل با موفقیت آپلود شدند`, 'success');
+                
+                // آپدیت آمار در پنل ادمین
+                if (currentUser.role === 'admin') {
+                    populateAdminPanel();
+                }
+            } else {
+                showNotification('هیچ فایلی آپلود نشد', 'warning');
             }
         }
         
-        // ============ اضافه کردن فایل به لیست ============
+        // ============ تبدیل فایل به Base64 ============
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+        
+        // ============ اضافه کردن فایل به لیست نمایش ============
         function addFileToList(file) {
             const uploadedFiles = document.getElementById('uploadedFiles');
+            if (!uploadedFiles) return;
+            
+            // حذف پیام "هنوز فایلی آپلود نکرده‌اید" اگر وجود دارد
+            const emptyMessage = uploadedFiles.querySelector('p[style*="text-align: center"]');
+            if (emptyMessage) {
+                emptyMessage.remove();
+            }
+            
             const fileElement = document.createElement('div');
             fileElement.className = 'event-item';
+            fileElement.dataset.fileId = file.id;
             fileElement.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="font-size: 20px;">
+                    <div style="font-size: 24px; color: ${getFileColor(file.type)};">
                         ${getFileIcon(file.type)}
                     </div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: bold; margin-bottom: 3px; font-size: 13px;">${file.name}</div>
-                        <div style="font-size: 11px; color: var(--gray);">
-                            ${formatBytes(file.size)} • ${formatDate(file.uploadedAt)}
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <div style="font-weight: bold; font-size: 14px; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${file.name}">
+                                ${file.name}
+                            </div>
+                            <div style="font-size: 11px; color: var(--gray);">
+                                ${formatDate(file.uploadedAt)}
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 12px; color: var(--gray);">
+                                ${formatBytes(file.size)}
+                                <span style="margin: 0 5px;">•</span>
+                                ${getFileTypeName(file.type)}
+                            </div>
+                            <div style="display: flex; gap: 5px;">
+                                <button onclick="viewFile('${file.id}')" class="btn-view" style="background: var(--primary); color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 3px;">
+                                    👁️ مشاهده
+                                </button>
+                                <button onclick="downloadFile('${file.id}')" class="btn-download" style="background: var(--success); color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 3px;">
+                                    📥 دانلود
+                                </button>
+                                <button onclick="deleteFile('${file.id}')" class="btn-delete" style="background: var(--danger); color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 3px;">
+                                    🗑️ حذف
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <button onclick="downloadFile(${file.id})" style="background: var(--primary); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">
-                        📥
-                    </button>
                 </div>
             `;
             
+            // اضافه کردن به ابتدای لیست
             if (uploadedFiles.firstChild) {
                 uploadedFiles.insertBefore(fileElement, uploadedFiles.firstChild);
             } else {
@@ -1690,28 +1942,245 @@
             }
         }
         
-        // ============ بارگذاری فایل‌ها ============
+        // ============ بارگذاری فایل‌ها از localStorage ============
         function loadFiles() {
             const uploadedFiles = document.getElementById('uploadedFiles');
+            if (!uploadedFiles) return;
+            
             uploadedFiles.innerHTML = '';
             
+            // فیلتر فایل‌های کاربر جاری
             const userFiles = files.filter(f => f.userId === currentUser.id);
             
             if (userFiles.length === 0) {
-                uploadedFiles.innerHTML = '<p style="text-align: center; color: var(--gray); padding: 20px; font-size: 13px;">هنوز فایلی آپلود نکرده‌اید.</p>';
+                uploadedFiles.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: var(--gray);">
+                        <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+                        <p style="font-size: 14px; margin-bottom: 10px;">هنوز فایلی آپلود نکرده‌اید</p>
+                        <p style="font-size: 12px; color: var(--primary);">فایل‌های خود را اینجا آپلود کنید</p>
+                    </div>
+                `;
                 return;
             }
             
+            // مرتب سازی (جدیدترین اول)
             userFiles.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
             
+            // اضافه کردن به لیست
             userFiles.forEach(file => addFileToList(file));
+        }
+        
+        // ============ مشاهده فایل ============
+        function viewFile(fileId) {
+            const file = files.find(f => f.id == fileId);
+            if (!file) {
+                showNotification('فایل یافت نشد', 'error');
+                return;
+            }
+            
+            // اگر فایل عکس است
+            if (file.type.startsWith('image/')) {
+                showImageModal(file);
+            }
+            // اگر فایل PDF است
+            else if (file.type === 'application/pdf') {
+                showPdfModal(file);
+            }
+            // برای سایر فایل‌ها
+            else {
+                downloadFile(fileId);
+            }
+        }
+        
+        // ============ نمایش مودال عکس ============
+        function showImageModal(file) {
+            const modalHTML = `
+                <div class="modal-overlay" id="imageModal">
+                    <div class="modal" style="max-width: 90%; max-height: 90%;">
+                        <div class="modal-header">
+                            <h3>🖼️ ${file.name}</h3>
+                            <button class="close-modal" onclick="closeModal('imageModal')">&times;</button>
+                        </div>
+                        <div class="modal-body" style="text-align: center; overflow: auto;">
+                            <img src="${file.data}" alt="${file.name}" style="max-width: 100%; max-height: 70vh; border-radius: 8px;">
+                            <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                                <button onclick="downloadFile('${file.id}')" class="btn btn-primary">
+                                    📥 دانلود فایل
+                                </button>
+                                <button onclick="closeModal('imageModal')" class="btn btn-secondary">
+                                    بستن
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // ============ نمایش مودال PDF ============
+        function showPdfModal(file) {
+            const modalHTML = `
+                <div class="modal-overlay" id="pdfModal">
+                    <div class="modal" style="max-width: 90%; max-height: 90%; width: 800px;">
+                        <div class="modal-header">
+                            <h3>📕 ${file.name}</h3>
+                            <button class="close-modal" onclick="closeModal('pdfModal')">&times;</button>
+                        </div>
+                        <div class="modal-body" style="height: 70vh;">
+                            <iframe src="${file.data}" style="width: 100%; height: 100%; border: none; border-radius: 8px;"></iframe>
+                            <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                                <button onclick="downloadFile('${file.id}')" class="btn btn-primary">
+                                    📥 دانلود PDF
+                                </button>
+                                <button onclick="closeModal('pdfModal')" class="btn btn-secondary">
+                                    بستن
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
         }
         
         // ============ دانلود فایل ============
         function downloadFile(fileId) {
-            const file = files.find(f => f.id === fileId);
-            if (file) {
-                showNotification(`دانلود فایل ${file.name} شروع شد`, 'info');
+            const file = files.find(f => f.id == fileId);
+            if (!file) {
+                showNotification('فایل یافت نشد', 'error');
+                return;
+            }
+            
+            // ایجاد لینک دانلود
+            const link = document.createElement('a');
+            link.href = file.data;
+            link.download = file.name;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification(`فایل ${file.name} در حال دانلود است`, 'success');
+        }
+        
+        // ============ حذف فایل ============
+        function deleteFile(fileId) {
+            if (!confirm('آیا از حذف این فایل اطمینان دارید؟')) {
+                return;
+            }
+            
+            const index = files.findIndex(f => f.id == fileId);
+            if (index !== -1) {
+                const fileName = files[index].name;
+                files.splice(index, 1);
+                localStorage.setItem('files', JSON.stringify(files));
+                
+                // حذف از نمایش
+                const fileElement = document.querySelector(`[data-file-id="${fileId}"]`);
+                if (fileElement) {
+                    fileElement.remove();
+                }
+                
+                // اگر فایلی باقی نمانده، پیام خالی نمایش بده
+                const userFiles = files.filter(f => f.userId === currentUser.id);
+                if (userFiles.length === 0) {
+                    loadFiles();
+                }
+                
+                showNotification(`فایل ${fileName} حذف شد`, 'success');
+            }
+        }
+        
+        // ============ جستجو در فایل‌ها ============
+        function searchFiles(keyword) {
+            const userFiles = files.filter(f => 
+                f.userId === currentUser.id && 
+                f.name.toLowerCase().includes(keyword.toLowerCase())
+            );
+            
+            const uploadedFiles = document.getElementById('uploadedFiles');
+            if (!uploadedFiles) return;
+            
+            uploadedFiles.innerHTML = '';
+            
+            if (userFiles.length === 0) {
+                uploadedFiles.innerHTML = '<p style="text-align: center; color: var(--gray); padding: 20px; font-size: 13px;">فایلی با این نام یافت نشد</p>';
+                return;
+            }
+            
+            userFiles.forEach(file => addFileToList(file));
+        }
+        
+        // ============ آپلود فایل‌های نمونه ============
+        function uploadSampleFiles() {
+            showNotification('در حال آپلود فایل‌های نمونه...', 'info');
+            
+            // ایجاد فایل‌های نمونه
+            const sampleFiles = [
+                { 
+                    name: 'سند-نمونه.pdf', 
+                    type: 'application/pdf', 
+                    size: 102400,
+                    data: 'data:application/pdf;base64,SGVsbG8gUERGIFNhbXBsZQ==' 
+                },
+                { 
+                    name: 'عکس-نمونه.jpg', 
+                    type: 'image/jpeg', 
+                    size: 204800,
+                    data: 'data:image/jpeg;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' 
+                },
+                { 
+                    name: 'متن-نمونه.txt', 
+                    type: 'text/plain', 
+                    size: 5120,
+                    data: 'data:text/plain;base64,SGVsbG8gV29ybGQh' 
+                }
+            ];
+            
+            // شبیه‌سازی آپلود
+            sampleFiles.forEach((sample, index) => {
+                setTimeout(() => {
+                    const fakeFile = {
+                        id: Date.now() + index,
+                        name: sample.name,
+                        type: sample.type,
+                        size: sample.size,
+                        userId: currentUser.id,
+                        userName: `${currentUser.firstName} ${currentUser.lastName}`,
+                        uploadedAt: new Date().toISOString(),
+                        data: sample.data
+                    };
+                    
+                    files.push(fakeFile);
+                    localStorage.setItem('files', JSON.stringify(files));
+                    addFileToList(fakeFile);
+                    
+                    if (index === sampleFiles.length - 1) {
+                        showNotification('فایل‌های نمونه با موفقیت اضافه شدند', 'success');
+                    }
+                }, index * 500);
+            });
+        }
+        
+        // ============ پاکسازی همه فایل‌ها ============
+        function clearAllFiles() {
+            if (confirm('آیا می‌خواهید تمام فایل‌های آپلود شده را پاک کنید؟')) {
+                // فقط فایل‌های کاربر جاری
+                files = files.filter(f => f.userId !== currentUser.id);
+                localStorage.setItem('files', JSON.stringify(files));
+                loadFiles();
+                showNotification('تمام فایل‌های شما پاک شدند', 'success');
+            }
+        }
+        
+        // ============ بستن مودال ============
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.remove();
             }
         }
         
@@ -1765,6 +2234,7 @@
         // ============ نمایش نتایج جستجو ============
         function displaySearchResults(results) {
             const container = document.getElementById('searchResults');
+            if (!container) return;
             
             if (results.length === 0) {
                 container.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 30px; font-size: 13px;">هیچ نتیجه‌ای یافت نشد.</p>';
@@ -1802,6 +2272,8 @@
         // ============ پر کردن پنل ادمین ============
         function populateAdminPanel() {
             const table = document.getElementById('adminUsersTable');
+            if (!table) return;
+            
             table.innerHTML = '';
             
             users.forEach(user => {
@@ -1927,6 +2399,8 @@
         // ============ نمایش نوتیفیکیشن ============
         function showNotification(message, type = 'info') {
             const notification = document.getElementById('notification');
+            if (!notification) return;
+            
             notification.textContent = message;
             notification.style.display = 'block';
             
@@ -1963,16 +2437,37 @@
         }
         
         function getFileIcon(fileType) {
-            if (fileType.includes('image')) return '🖼️';
+            if (fileType.startsWith('image/')) return '🖼️';
             if (fileType.includes('pdf')) return '📕';
             if (fileType.includes('word')) return '📄';
+            if (fileType.includes('text')) return '📝';
+            if (fileType.includes('zip') || fileType.includes('rar')) return '📦';
             return '📎';
         }
         
+        function getFileColor(fileType) {
+            if (fileType.startsWith('image/')) return '#3498db';
+            if (fileType.includes('pdf')) return '#e74c3c';
+            if (fileType.includes('word')) return '#2ecc71';
+            if (fileType.includes('text')) return '#f39c12';
+            if (fileType.includes('zip') || fileType.includes('rar')) return '#9b59b6';
+            return '#95a5a6';
+        }
+        
+        function getFileTypeName(fileType) {
+            if (fileType.startsWith('image/')) return 'عکس';
+            if (fileType.includes('pdf')) return 'PDF';
+            if (fileType.includes('word')) return 'سند Word';
+            if (fileType.includes('text')) return 'متن';
+            if (fileType.includes('zip')) return 'فشرده ZIP';
+            if (fileType.includes('rar')) return 'فشرده RAR';
+            return 'فایل';
+        }
+        
         function formatBytes(bytes) {
-            if (bytes === 0) return '0 Bytes';
+            if (bytes === 0) return '0 بایت';
             const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const sizes = ['بایت', 'کیلوبایت', 'مگابایت', 'گیگابایت'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
